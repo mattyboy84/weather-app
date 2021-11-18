@@ -32,12 +32,52 @@ public class WeatherData {
 
     }
 
-
     public void everything() {
         System.out.println("Location: " + this.location);
         System.out.println("Date: " + this.date);
         System.out.println("Lon: " + this.lon + " Lat: " + this.lat);
         System.out.println("Temperature is: " + this.temp + " °C, feels like: " + this.feels_like + " °C," + " Weather is: " + this.weather);
+        System.out.println("High of: " +  this.temp_max + " And a low of: " + this.temp_min);
         System.out.println("Pressure: " + this.pressure + ", Humidity: " + this.humidity);
+    }
+
+    public float getLon() {
+        return lon;
+    }
+
+    public float getLat() {
+        return lat;
+    }
+
+    public String getWeather() {
+        return weather;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public float getTemp() {
+        return temp;
+    }
+
+    public float getFeels_like() {
+        return feels_like;
+    }
+
+    public float getTemp_min() {
+        return temp_min;
+    }
+
+    public float getTemp_max() {
+        return temp_max;
+    }
+
+    public float getDeg() {
+        return deg;
+    }
+
+    public Date getDate() {
+        return date;
     }
 }

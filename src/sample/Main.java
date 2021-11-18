@@ -4,6 +4,7 @@ package sample;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 import com.google.gson.JsonArray;
@@ -50,7 +51,9 @@ public class Main extends Application {
     TextField codeField;
     TextField locationField;
     Text warning;
-
+    //
+    Label locationLBL=new Label(),weatherLBL=new Label(),tempLBL=new Label(),HtoL=new Label();
+    int LBL_buffer = 5;
     /*
     60 calls/minute
     1,000,000 calls/month
@@ -59,29 +62,26 @@ public class Main extends Application {
     public void start(Stage stage) throws Exception {
         //
         countryCode = "gb";
-        System.out.println("What location do you want to check?");
         //location = scanner.nextLine();
-        location = "newbury";
+        location = "Newbury";
         //
         //System.out.println("What country do you want to check");
         //countryCode = scanner.nextLine();
         //
-        settingsSetup(stage);
-
-
-        weatherSetup(stage);
-
         String urlString = "https://api.openweathermap.org/data/2.5/weather?q=" + location + "," + countryCode + "&units=metric&appid=" + API_Key;
         //urlString ="https://api.openweathermap.org/data/2.5/weather?q=London,uk&units=metric&appid=8658de70c460efa547dec60285d833fd";
 
-
         getWeatherInfo(urlString);
+
+
+        settingsSetup(stage);
+
+        weatherSetup(stage);
+
+
         System.out.println("---------------------------------------------------------------------------");
         //
         timelineStarter();
-
-
-        stageListener();
 
 
         stage.setScene(weatherScene);
@@ -89,6 +89,7 @@ public class Main extends Application {
     }
 
     private void weatherSetup(Stage stage) {
+        //
 
         Button weather = new Button("Weather");
         weather.relocate(0, 0);
@@ -98,14 +99,16 @@ public class Main extends Application {
                 case PRIMARY:
 
                     boolean swap;
-                    if (!(codeField.getText().equals(errorCode) && locationField.getText().equals(errorLocation))) {
+                    if (!(codeField.getText().equalsIgnoreCase(errorCode) && locationField.getText().equalsIgnoreCase(errorLocation))) {
                         System.out.println("Changed to Weather Scene");
+
                         errorCode = null;
                         errorLocation = null;
 
                         countryCode = codeField.getText();
                         location = locationField.getText();
-
+                        location = location.substring(0, 1).toUpperCase() + location.substring(1);
+                        update();
                         swap = updateWeather();
 
                         if (!swap) {//if no error - swap scene
@@ -120,7 +123,22 @@ public class Main extends Application {
             }
         });
         //
+        update();
+
+        weatherGroup.getChildren().addAll(locationLBL, weatherLBL,tempLBL);
         settingGroup.getChildren().addAll(weather);
+    }
+
+    private void update() {
+        locationLBL.setText(location);
+        locationLBL.relocate((int) ((width / 2) - new Text(location).getBoundsInParent().getWidth() / 2), (int) ((75) - new Text(location).getBoundsInParent().getHeight() / 2));
+        //
+        weatherLBL.setText(weatherData.get(weatherData.size() - 1).getWeather());
+        weatherLBL.relocate((int) ((width / 2) - new Text(weatherLBL.getText()).getBoundsInParent().getWidth() / 2), (int) ((locationLBL.getLayoutY() + new Text(location).getBoundsInParent().getHeight() + LBL_buffer) - new Text(weatherLBL.getText()).getBoundsInParent().getHeight() / 2));
+        //
+        tempLBL.setText(String.valueOf(new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp())))) + "°");
+        tempLBL.relocate((int) ((width / 2) - new Text(tempLBL.getText()).getBoundsInParent().getWidth() / 2), (int) ((weatherLBL.getLayoutY() + new Text(weatherLBL.getText()).getBoundsInParent().getHeight() + LBL_buffer) - new Text(tempLBL.getText()).getBoundsInParent().getHeight() / 2));
+
     }
 
     boolean error = false;
@@ -140,41 +158,33 @@ public class Main extends Application {
         //
         Text countryText = new Text("Update country code:");
         countryText.relocate(0, 50);
+
         //
         codeField = new TextField(countryCode);
-        codeField.relocate(countryText.getBoundsInParent().getMaxX() + 10, countryText.getBoundsInParent().getMinY() - 5);
+        codeField.relocate(countryText.getBoundsInLocal().getMaxX() + 10, countryText.getBoundsInParent().getMinY() - 3);
         codeField.setPrefWidth(50);
         //
         Text locationText = new Text("Update location:");
         locationText.relocate(0, 150);
         //
         locationField = new TextField(location);
-        locationField.relocate(locationText.getBoundsInParent().getMaxX() + 10, locationText.getBoundsInParent().getMinY() - 5);
+        locationField.relocate(locationText.getBoundsInLocal().getMaxX() + 10, locationText.getBoundsInParent().getMinY() - 3);
         locationField.setPrefWidth(100);
 
         warning = new Text("Location not found - please check");
         warning.relocate(0, 90);
         warning.setVisible(false);
 
-
         weatherGroup.getChildren().addAll(settings);
         //
         settingGroup.getChildren().addAll(countryText, codeField, locationText, locationField, warning);
-    }
-
-    private void stageListener() {
-        weatherScene.setOnKeyPressed(event -> {
-            for (int i = 0; i < weatherData.size(); i++) {
-                System.out.println("Complete Weather backup");
-            }
-        });
-
     }
 
     private void timelineStarter() {
         Timeline timeline = new Timeline(new KeyFrame(Duration.minutes(5), event -> {
 
             updateWeather();
+            update();
 
         }));
         timeline.setCycleCount(Timeline.INDEFINITE);
