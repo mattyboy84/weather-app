@@ -5,6 +5,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import com.google.gson.JsonArray;
@@ -18,6 +20,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -37,7 +41,7 @@ public class Main extends Application {
     int width = 300;
     int height = 500;
     Group weatherGroup = new Group();
-    Scene weatherScene = new Scene(weatherGroup, width, height);
+    Scene weatherScene = new Scene(weatherGroup, width, height, Color.LIGHTBLUE);
     Group settingGroup = new Group();
     Scene settingScene = new Scene(settingGroup, width, height);
     //https://api.openweathermap.org/data/2.5/weather?q=London,uk&units=metric&appid=8658de70c460efa547dec60285d833fd
@@ -52,8 +56,9 @@ public class Main extends Application {
     TextField locationField;
     Text warning;
     //
-    Label locationLBL=new Label(),weatherLBL=new Label(),tempLBL=new Label(),HtoL=new Label();
-    int LBL_buffer = 5;
+    Label locationLBL = new Label(), weatherLBL = new Label(), tempLBL = new Label(), HtoL = new Label();
+    int LBL_buffer = 10;
+
     /*
     60 calls/minute
     1,000,000 calls/month
@@ -108,8 +113,8 @@ public class Main extends Application {
                         countryCode = codeField.getText();
                         location = locationField.getText();
                         location = location.substring(0, 1).toUpperCase() + location.substring(1);
-                        update();
                         swap = updateWeather();
+                        update();
 
                         if (!swap) {//if no error - swap scene
                             stage.setScene(weatherScene);
@@ -125,7 +130,7 @@ public class Main extends Application {
         //
         update();
 
-        weatherGroup.getChildren().addAll(locationLBL, weatherLBL,tempLBL);
+        weatherGroup.getChildren().addAll(locationLBL, weatherLBL, tempLBL,HtoL);
         settingGroup.getChildren().addAll(weather);
     }
 
@@ -136,9 +141,16 @@ public class Main extends Application {
         weatherLBL.setText(weatherData.get(weatherData.size() - 1).getWeather());
         weatherLBL.relocate((int) ((width / 2) - new Text(weatherLBL.getText()).getBoundsInParent().getWidth() / 2), (int) ((locationLBL.getLayoutY() + new Text(location).getBoundsInParent().getHeight() + LBL_buffer) - new Text(weatherLBL.getText()).getBoundsInParent().getHeight() / 2));
         //
-        tempLBL.setText(String.valueOf(new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp())))) + "°");
-        tempLBL.relocate((int) ((width / 2) - new Text(tempLBL.getText()).getBoundsInParent().getWidth() / 2), (int) ((weatherLBL.getLayoutY() + new Text(weatherLBL.getText()).getBoundsInParent().getHeight() + LBL_buffer) - new Text(tempLBL.getText()).getBoundsInParent().getHeight() / 2));
-
+        tempLBL.setFont(Font.font(20));
+        tempLBL.setText(new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp()))) + "°");
+        //
+        Text newT = new Text(tempLBL.getText());
+        newT.setFont(Font.font(20));
+        tempLBL.relocate((int) ((width / 2) - newT.getBoundsInParent().getWidth() / 2), (int) ((weatherLBL.getLayoutY() + new Text(weatherLBL.getText()).getBoundsInParent().getHeight() + LBL_buffer) - newT.getBoundsInParent().getHeight() / 2));
+        //System.out.println(new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp_min()))) +" " + new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp_max()))));
+        //
+        HtoL.setText("H:" + new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp_max()))) +"° L:" +new DecimalFormat("#.#").format(((weatherData.get(weatherData.size() - 1).getTemp_min()))) + "°");
+        HtoL.relocate((int) ((width / 2) - new Text(HtoL.getText()).getBoundsInParent().getWidth() / 2),(int) ((tempLBL.getLayoutY() + newT.getBoundsInParent().getHeight()+LBL_buffer)-newT.getBoundsInParent().getHeight()/2));
     }
 
     boolean error = false;
@@ -236,7 +248,7 @@ public class Main extends Application {
             speed = jsonObject.getAsJsonObject("wind").get("speed").getAsFloat();
             //deg = jsonObject.getAsJsonObject("wind").get("deg").getAsFloat();
             //gust = jsonObject.getAsJsonObject("wind").get("gust").getAsFloat();
-            Date date = Calendar.getInstance().getTime();
+            LocalDateTime date = LocalDateTime.now();
             weatherData.add(new WeatherData(result, lon, lat, weather, temp, feels_like, temp_min, temp_max, pressure, humidity, speed, location, date));
             currentWeather = weatherData.get(weatherData.size() - 1);
             //
